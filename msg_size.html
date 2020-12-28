@@ -1,0 +1,92 @@
+<!--
+  Copyright 2020, Bart Butenaers
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+  http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<script type="text/x-red" data-template-name="msg-size">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-interval"><i class="fa fa-random"></i> Frequency</label>
+        <input type="number" id="node-input-interval" style="width:100px;">
+        <select id="node-input-frequency">
+            <option value="sec">Second</option>
+            <option value="min">Minute</option>
+            <option value="hour">Hour</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <input type="checkbox" id="node-input-estimation" style="display: inline-block; width: auto; vertical-align: top;">
+        <label for="node-input-estimation" style="width: auto">Estimate size during startup period</label>
+    </div>
+    <div class="form-row">
+        <input type="checkbox" id="node-input-ignore" style="display: inline-block; width: auto; vertical-align: top;">
+        <label for="node-input-ignore" style="width: auto">Ignore size during startup period</label>
+    </div>
+    <div class="form-row">
+        <input type="checkbox" id="node-input-pauseAtStartup" style="display: inline-block; width: auto; vertical-align: top;">
+        <label for="node-input-pauseAtStartup" style="width: auto">Pause measurements at startup</label>
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="msg-size">
+    <p>A node to measure the flow message size.</p>
+    <p><strong>Frequency</strong></p>
+    <p>The size will be measured at the specified frequency.
+    E.g. frequency '2 hour' means that (every second) the average/minimum/maximum/total size of the previous two hours will be calculated.</p>
+    <p><strong>Estimate size</strong></p>
+    <p>In case estimation is disabled, the size will be incorrect during the startup period.
+    E.g. when every second 1 message arrives, the calculated size will only be correct after the first minute has passed.
+    When estimation is enabled, the final sizes will be estimated during the startup interval (in this example during the first minute).
+    This setting is useless when frequency is 'second' (which has no startup period) or when the 'ignore size' checkbox is selected.</p>
+    <p><strong>Ignore size</strong></p>
+    <p>When size is ignored during the startup period, no messages will be send to the output port during the startup period.
+    Moreover, the node status (in the flow editor) will not display the calculated size.</p>
+    <p><strong>Pause measurements at startup</strong></p>
+    <p>When selected, this node will be paused automatically at startup (which means it needs to be resumed via a control message).</p>    
+    <p>The node can be controlled via control messages:
+    <ul>
+        <li><code>msg.size_reset = true</code>: resets all measurements and starts measuring all over again (incl. startup period).</li>
+        <li><code>msg.size_pause = true</code>: pause the current size measurement (i.e. neglect arriving input messages).</li>
+        <li><code>msg.size_resume = true</code>: resume the size measurement, in case it is paused currently.</li>
+    </ul>
+    </p>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType("msg-size", {
+      category: "performance",
+      defaults: {
+          name: {value:""},
+          frequency: {value:"sec"},
+          interval: {value:1, validate: function(v) { return !v || v > 0}},
+          estimation: {value:false},
+          ignore: {value:false},
+          pauseAtStartup: {value:false}
+      },
+      color:"#e2d96e",
+      inputs: 1,
+      outputs: 2,
+      outputLabels: ["size","input msg"],
+      icon: "font-awesome/fa-stack-overflow",
+      label: function() {
+          return this.name || "msg-size";
+      },
+      labelStyle: function() {
+          return this.name ? "node_label_italic" : "";
+      },
+      oneditprepare: function() {
+          // Migrate old nodes which don't have an interval ye, so interval was 1 (e.g. 1 second)
+          $('#node-input-interval').val(this.interval || 1);
+      }
+    });
+</script>
