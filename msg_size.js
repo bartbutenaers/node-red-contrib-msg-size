@@ -15,9 +15,13 @@
  **/
 module.exports = function(RED) {
     "use strict";
+    const sizeof = require('object-sizeof');
+    const humanReadable = require('filesize');
 
     function sizeNode(config) {
         RED.nodes.createNode(this, config);
+        this.statusContent = config.statusContent;
+        this.humanReadableStatus = config.humanReadableStatus;
         
         var node = this;
   
@@ -27,28 +31,60 @@ module.exports = function(RED) {
         
         // The real logic has been encapsulated in a separate NPM package, so it can be shared between multiple of my Node-RED nodes...
         const MessageAnalyzer = require('nr-msg-statistics');
-        
+
         class MessageSizeAnalyzer extends MessageAnalyzer {
-            calculateMsgStatistics(totalMsgCount, msg, originalMsgStatistics) {
-                // TODO
-                return null;
+            calculateMsgStatistic( msg) {
+                return sizeof(msg);
             }
     
-            sendMsg(totalMsgCount, msgData) {
-                // TODO
-                node.send([{ payload: totalMsgCount, frequency: this.frequency, interval: this.interval, intervalAndFrequency: this.interval + " " + this.frequency }, null]);
+            sendMsg(msgCountInBuffer, msgStatisticInBuffer) {
+                debugger;
+                var averageMsgSize = 0;
+                
+                if (msgCountInBuffer > 0) {
+                    averageMsgSize = msgStatisticInBuffer / msgCountInBuffer;
+                }
+                
+                node.send([{ totalMsgSize:          msgStatisticInBuffer,
+                             averageMsgSize:        averageMsgSize,
+                             frequency:             this.frequency,
+                             interval:              this.interval,
+                             intervalAndFrequency:  this.interval + " " + this.frequency
+                }, null]);
             }
-            
-            changeStatus(totalMsgCount, isStartup) {
+       
+            changeStatus(msgCountInBuffer, msgStatisticInBuffer, isStartup) {
+                var sizeToDisplay;
                 var status;
+                
+                // Show the size that has been specified in the config screen
+                switch(node.statusContent) {
+                    case "avg":
+                        var averageMsgSize = 0;
+                
+                        if (msgCountInBuffer > 0) {
+                            averageMsgSize = msgStatisticInBuffer / msgCountInBuffer;
+                        }
+                        
+                        sizeToDisplay = averageMsgSize;
+                        break;
+                    case "tot":
+                        sizeToDisplay = msgStatisticInBuffer;
+                        break;
+                }
+                
+                if (node.humanReadableStatus) {
+                    // Human readable format (KB, MB, ...) without decimal digits
+                    sizeToDisplay = humanReadable(sizeToDisplay, {round: 0});
+                }
                 
                 // The status contains both the interval and the frequency (e.g. "2 hour").
                 // Except when interval is 1, then we don't show the interval (e.g. "hour" instead of "1 hour").
                 if (this.interval === 1) {
-                    status = totalMsgCount + " / " + this.frequency;
+                    status = sizeToDisplay + " / " + this.frequency;
                 }
                 else {
-                    status = totalMsgCount + " / " + this.interval + " " + this.frequency;
+                    status = sizeToDisplay + " / " + this.interval + " " + this.frequency;
                 }
 
                 // Show startup speed values in orange, and real values in green
@@ -74,21 +110,21 @@ module.exports = function(RED) {
             // When a reset message arrives, fill the buffer with zeros to start counting all over again.
             // Remark: the disadvantage is that you will end up again with a startup period ...
             if (msg.hasOwnProperty('size_reset') && msg.size_reset === true) {
-                messageSpeedAnalyzer.reset();
+                messageSizeAnalyzer.reset();
                 node.status({fill:"yellow",shape:"ring",text:"reset"});
                 controlMsg = true;
             }
             
             // When a resume message arrives, the size measurement will be resumed
             if (msg.hasOwnProperty('size_resume') && msg.size_resume === true) {
-                messageSpeedAnalyzer.resume();
+                messageSizeAnalyzer.resume();
                 node.status({fill:"yellow",shape:"ring",text:"resumed"});
                 controlMsg = true;
             }
             
             // When a pause message arrives, the size measurement will be paused
             if (msg.hasOwnProperty('size_pause') && msg.size_pause === true) {
-                messageSpeedAnalyzer.pause();
+                messageSizeAnalyzer.pause();
                 node.status({fill:"yellow",shape:"ring",text:"paused"});
                 controlMsg = true;
             }
@@ -98,8 +134,7 @@ module.exports = function(RED) {
                 return;
             }
             
-            // In case of speed measurements, no extra data need to be stored about the input message.
-            // Indeed the MssageAnalyzer already delivers the total msg count per interval, which is enough information to calculate the speed.
+            // In case of size measurements, extra (sizes) data need to be stored about the input message.  So let's pass the input msg ...
             messageSizeAnalyzer.process(msg);
             
             // Send the original message on the second output port (even when the speed measurement is inactive)
