@@ -22,6 +22,9 @@ For example when the frequency is '1 minute', it will calculate (and accumulate)
 
 ![Timeline 1](https://user-images.githubusercontent.com/14224149/103375925-9bf8d000-4adb-11eb-96c5-ae3f511d8096.png)
 
+The node will calculate the size of every message running through it, and sum all the message sizes that arrive during the specified interval.
+In this case the *total* size = 3 + 5 + 7 = 15 ***KB per minute***, and the *average* size will be 15 / 3 = 5 KB per minute.
+
 A second later, the calculation is repeated: again the sizes of the messages received in the last minute will be calculated (and accumulated).
 
 ![Timeline 2](https://user-images.githubusercontent.com/14224149/103376041-dc584e00-4adb-11eb-9269-28171e9a8cb8.png)
