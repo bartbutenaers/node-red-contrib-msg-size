@@ -72,6 +72,9 @@ For example a frequency of '25 seconds' means that the average size is calculate
 
 Caution: long intervals (like 'hour') will take more memory to store all the intermediate size calculations (i.e. one calculation per second).  Moreover the startup period (with incomplete values) will take longer...
 
+### Status
+Select whether the total size or the average size (of the selected interval) needs to be displayed in the node status.
+
 ### Estimate size (during startup period)
 During the startup period, the calculated size will be incorrect.  When estimation is activated, the final size will be estimated during the startup period (using linear extrapolation).  The graph will start from zero immediately to an estimation of the final value:
 
@@ -86,6 +89,9 @@ Moreover during the startup period no node status would be displayed.
 
 ### Pause measurements at startup
 When selected, this node will be paused automatically at startup.  This means that the size calculation needs to be resumed explicit via a control message.
+
+### Human readable size in status
+When selected, the node status will display the message size in human readable format (e.g. 5 KB) instead of raw bytes.
 
 ## Control node via msg
 The size measurement can be controlled via *'control messages'*, which contains one of the following fields:
