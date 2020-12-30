@@ -25,6 +25,13 @@
         </select>
     </div>
     <div class="form-row">
+        <label for="node-input-statusContent"><i class="fa fa-font"></i> Status</label>
+        <select id="node-input-statusContent">
+            <option value="avg">Average</option>
+            <option value="tot">Total</option>
+        </select>
+    </div>
+    <div class="form-row">
         <input type="checkbox" id="node-input-estimation" style="display: inline-block; width: auto; vertical-align: top;">
         <label for="node-input-estimation" style="width: auto">Estimate size during startup period</label>
     </div>
@@ -36,13 +43,19 @@
         <input type="checkbox" id="node-input-pauseAtStartup" style="display: inline-block; width: auto; vertical-align: top;">
         <label for="node-input-pauseAtStartup" style="width: auto">Pause measurements at startup</label>
     </div>
+    <div class="form-row">
+        <input type="checkbox" id="node-input-humanReadableStatus" style="display: inline-block; width: auto; vertical-align: top;">
+        <label for="node-input-humanReadableStatus" style="width: auto">Human readable size in status</label>
+    </div>
 </script>
 
 <script type="text/x-red" data-help-name="msg-size">
     <p>A node to measure the flow message size.</p>
     <p><strong>Frequency</strong></p>
     <p>The size will be measured at the specified frequency.
-    E.g. frequency '2 hour' means that (every second) the average/minimum/maximum/total size of the previous two hours will be calculated.</p>
+    E.g. frequency '2 hour' means that (every second) the average/total size of the previous two hours will be calculated.</p>
+    <p><strong>Status</strong></p>
+    <p>Specify which size statistic needs to be displayed as node status (average/total).</p>
     <p><strong>Estimate size</strong></p>
     <p>In case estimation is disabled, the size will be incorrect during the startup period.
     E.g. when every second 1 message arrives, the calculated size will only be correct after the first minute has passed.
@@ -53,6 +66,8 @@
     Moreover, the node status (in the flow editor) will not display the calculated size.</p>
     <p><strong>Pause measurements at startup</strong></p>
     <p>When selected, this node will be paused automatically at startup (which means it needs to be resumed via a control message).</p>    
+    <p><strong>Human readable size in status</strong></p>
+    <p>When selected, the message size in the node status will be in human readable format (KB, MB, ...) instead of raw a raw byte count.</p>
     <p>The node can be controlled via control messages:
     <ul>
         <li><code>msg.size_reset = true</code>: resets all measurements and starts measuring all over again (incl. startup period).</li>
@@ -69,9 +84,11 @@
           name: {value:""},
           frequency: {value:"sec"},
           interval: {value:1, validate: function(v) { return !v || v > 0}},
+          statusContent: {value:"avg"},
           estimation: {value:false},
           ignore: {value:false},
-          pauseAtStartup: {value:false}
+          pauseAtStartup: {value:false},
+          humanReadableStatus: {value:true}
       },
       color:"#e2d96e",
       inputs: 1,
