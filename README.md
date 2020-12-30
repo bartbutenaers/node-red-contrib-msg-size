@@ -14,25 +14,21 @@ Please buy my wife a coffee to keep her happy, while I am busy developing Node-R
 <a href="https://www.buymeacoffee.com/bartbutenaers" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy my wife a coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
 
 ## How it works
-This node will calculate the seach of each individual message that arrive at the input port.  Based on those individual message sizes, it will calculate some msg sizing statistics *every second* for the specified interval:
+This node will calculate the seach of each individual message that arrives at the input port.  Based on those individual message sizes, it will calculate some msg sizing statistics *every second* for the specified interval:
 + *Total size*: size of all the messages accumulated.
-+ *Minimum size*: size of the smallest message.
-+ *Maximum size*: size of the largest messages.
 + *Average size*: average size of all the messages.
 
-For example when the frequency is '1 minute', it will measure the sizse of all the messages received in the *last minute*: 
+For example when the frequency is '1 minute', it will calculate (and accumulate) the sizes of all the messages received in the *last minute*: 
 
-![Timeline 1](https://raw.githubusercontent.com/bartbutenaers/node-red-contrib-msg-speed/master/images/speed1.png)
+![Timeline 1](https://user-images.githubusercontent.com/14224149/103349694-d80d4000-4a9d-11eb-8348-8ef214ce8c36.png)
 
-A second later, the calculation is repeated: again the sizes of the messages received in the last minute will be counted.
+A second later, the calculation is repeated: again the sizes of the messages received in the last minute will be calculated (and accumulated).
 
-![Timeline 2](https://raw.githubusercontent.com/bartbutenaers/node-red-contrib-msg-speed/master/images/speed2.png)
+![Timeline 2](https://user-images.githubusercontent.com/14224149/103349858-5a95ff80-4a9e-11eb-80a3-9c2814f52372.png)
 
 The measurement interval is like a **moving window**, that is being moved every second.
 
-The process continues this way, while the moving window is discarding old messages and taking into account new messages:
-
-![Timeline 3](https://raw.githubusercontent.com/bartbutenaers/node-red-contrib-msg-speed/master/images/speed3.png)
+The process continues this way, while the moving window is discarding old messages and taking into account new messages...
 
 ## Output message
 + First output: The message size information will be send to the first output port.  This payload could be visualised e.g. in a dashboard graph:
@@ -40,10 +36,8 @@ The process continues this way, while the moving window is discarding old messag
     ![Size chart](https://raw.githubusercontent.com/bartbutenaers/node-red-contrib-msg-speed/master/images/speed_chart.png)
 
    The output message contains this fields:
-   + `msg.total` contains the total size of all the messages in the specified interval/frequency.
-   + `msg.minimum` contains the minimum size of the smallest message in the specified interval/frequency.
-   + `msg.maximum` contains the maximum size of the largest message in the specified interval/frequency.
-   + `msg.average` contains the average size of all the messages in the specified interval/frequency.
+   + `msg.totalMsgSize` contains the total size of all the messages in the specified interval/frequency.
+   + `msg.averageMsgSize` contains the average size of all the messages in the specified interval/frequency.
    + `msg.frequency` contains the specified frequency ('sec', 'min' or 'hour') from the config screen.
    + `msg.interval` contains the specified interval (e.g. 15) from the config screen, i.e. the length of the time window.
    + `msg.intervalAndFrequency` contains the both the interval and the frequency (e.g. '5 sec', '20 min', '1 hour').
@@ -110,8 +104,7 @@ The size measurement can be controlled via *'control messages'*, which contains 
 
 Example flow:
 
-![Msg control](https://user-images.githubusercontent.com/14224149/103238862-4641ed80-494c-11eb-9076-cc3673877c57.png)
-
+![Msg control](https://user-images.githubusercontent.com/14224149/103350043-ff184180-4a9e-11eb-929d-45b45cd423c3.png)
 ```
-
+[{"id":"c2727b62.bec668","type":"inject","z":"7f1827bd.8acfe8","name":"Generate msg every second","props":[{"p":"payload"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"","payload":"test","payloadType":"str","x":360,"y":1160,"wires":[["9a7106a0.9343c8"]]},{"id":"7fc95fbc.17bcd","type":"inject","z":"7f1827bd.8acfe8","name":"Reset","repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"","payload":"","payloadType":"date","x":290,"y":1200,"wires":[["4d0ff6d5.e9bc58"]]},{"id":"4d0ff6d5.e9bc58","type":"change","z":"7f1827bd.8acfe8","name":"","rules":[{"t":"set","p":"size_reset","pt":"msg","to":"true","tot":"bool"}],"action":"","property":"","from":"","to":"","reg":false,"x":490,"y":1200,"wires":[["9a7106a0.9343c8"]]},{"id":"8e34f29c.6a028","type":"inject","z":"7f1827bd.8acfe8","name":"Resume","repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"","payload":"","payloadType":"date","x":300,"y":1240,"wires":[["3f9d6138.9e0aae"]]},{"id":"3f9d6138.9e0aae","type":"change","z":"7f1827bd.8acfe8","name":"","rules":[{"t":"set","p":"size_resume","pt":"msg","to":"true","tot":"bool"}],"action":"","property":"","from":"","to":"","reg":false,"x":500,"y":1240,"wires":[["9a7106a0.9343c8"]]},{"id":"5460124f.6ae8cc","type":"inject","z":"7f1827bd.8acfe8","name":"Pause","repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"","payload":"","payloadType":"date","x":290,"y":1280,"wires":[["e518e1e.79fb92"]]},{"id":"e518e1e.79fb92","type":"change","z":"7f1827bd.8acfe8","name":"","rules":[{"t":"set","p":"size_pause","pt":"msg","to":"true","tot":"bool"}],"action":"","property":"","from":"","to":"","reg":false,"x":500,"y":1280,"wires":[["9a7106a0.9343c8"]]},{"id":"2af39912.a74596","type":"debug","z":"7f1827bd.8acfe8","name":"Size","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"true","targetType":"full","statusVal":"","statusType":"auto","x":950,"y":1160,"wires":[]},{"id":"9a7106a0.9343c8","type":"msg-size","z":"7f1827bd.8acfe8","name":"","frequency":"sec","interval":1,"statusContent":"tot","estimation":false,"ignore":false,"pauseAtStartup":true,"humanReadableStatus":true,"x":760,"y":1160,"wires":[["2af39912.a74596"],[]]}]
 ```
