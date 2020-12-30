@@ -1,5 +1,5 @@
 # node-red-contrib-msg-size
-A Node Red node for measuring flow message size.
+A Node Red node for measuring the message sizes (and throughput).
 
 ## Install
 Run the following npm command in your Node-RED user directory (typically ~/.node-red):
@@ -14,52 +14,43 @@ Please buy my wife a coffee to keep her happy, while I am busy developing Node-R
 <a href="https://www.buymeacoffee.com/bartbutenaers" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy my wife a coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
 
 ## How it works
-This node will calculate the seach of each individual message that arrives at the input port.  Based on those individual message sizes, it will calculate some msg sizing statistics *every second* for the specified interval:
-+ *Total size*: size of all the messages accumulated.
+This node will calculate the seach of each individual message that arrives at the input port.  Based on those individual message sizes, it will calculate *every second* some message sizing statistics (for the specified interval):
++ *Total size*: size of all the messages accumulated (= throughput).
 + *Average size*: average size of all the messages.
 
 For example when the frequency is '1 minute', it will calculate (and accumulate) the sizes of all the messages received in the *last minute*: 
 
-![Timeline 1](https://user-images.githubusercontent.com/14224149/103349694-d80d4000-4a9d-11eb-8348-8ef214ce8c36.png)
+![Timeline 1](https://user-images.githubusercontent.com/14224149/103375925-9bf8d000-4adb-11eb-96c5-ae3f511d8096.png)
 
 A second later, the calculation is repeated: again the sizes of the messages received in the last minute will be calculated (and accumulated).
 
-![Timeline 2](https://user-images.githubusercontent.com/14224149/103349858-5a95ff80-4a9e-11eb-80a3-9c2814f52372.png)
+![Timeline 2](https://user-images.githubusercontent.com/14224149/103376041-dc584e00-4adb-11eb-9269-28171e9a8cb8.png)
 
 The measurement interval is like a **moving window**, that is being moved every second.
 
 The process continues this way, while the moving window is discarding old messages and taking into account new messages...
 
 ## Output message
-+ First output: The message size information will be send to the first output port.  This payload could be visualised e.g. in a dashboard graph:
++ First output: The message size information will be send to the first output port.  This information can be used to trigger alarms, activate throttling, visualisation in a graph ...
 
-    ![Size chart](https://raw.githubusercontent.com/bartbutenaers/node-red-contrib-msg-speed/master/images/speed_chart.png)
-
-   The output message contains this fields:
-   + `msg.totalMsgSize` contains the total size of all the messages in the specified interval/frequency.
-   + `msg.averageMsgSize` contains the average size of all the messages in the specified interval/frequency.
+   The output message contains following fields:
+   + `msg.totalMsgSize` contains the total size of all the messages in the specified interval.
+   + `msg.averageMsgSize` contains the average size of all the messages in the specified interval.
    + `msg.frequency` contains the specified frequency ('sec', 'min' or 'hour') from the config screen.
    + `msg.interval` contains the specified interval (e.g. 15) from the config screen, i.e. the length of the time window.
    + `msg.intervalAndFrequency` contains the both the interval and the frequency (e.g. '5 sec', '20 min', '1 hour').
    
-+ Second output: The original input message will be forwarded to this output port, which allows the speed node to be ***chained*** for better performance.
++ Second output: The original input message will be forwarded to this output port, which allows the size-node to be ***chained*** for better performance.
 
 ## Node status
-The message size will be displayed as node status, in the flow editor:
+The message size (in the specified interval) will be displayed as node status, in the flow editor:
 
-![Node status](https://raw.githubusercontent.com/bartbutenaers/node-red-contrib-msg-speed/master/images/speed4.png)
-
-```
-
-```
-
-During the startup period the message size will be displayed orange:
-
-![Startup status](https://raw.githubusercontent.com/bartbutenaers/node-red-contrib-msg-speed/master/images/startup_status.png)
-
-And when 'ignore size during startup' is active, the node status will indicate this during the startup period:
-
-![Ignore startup](https://raw.githubusercontent.com/bartbutenaers/node-red-contrib-msg-speed/master/images/startup_ignored.png)
+| Node status  | Description |
+| ------------- | ------------- |
+| ![image](https://user-images.githubusercontent.com/14224149/103376618-753b9900-4add-11eb-9833-f9b0845d0323.png)  | The node is paused and won't calculate sizes  |
+| ![image](https://user-images.githubusercontent.com/14224149/103376664-9c926600-4add-11eb-97b0-210e0e3694fd.png)  | The node is resumed after being paused  |
+| ![image](https://user-images.githubusercontent.com/14224149/103376735-c481c980-4add-11eb-83cd-81162355efd4.png)  | The message sizes are displayed in human readable format  |
+| ![image](https://user-images.githubusercontent.com/14224149/103376832-fb57df80-4add-11eb-8983-b745359c4d6c.png)  | The node ignores messges until the startup period is passed  |
 
 ## Startup period
 The sizes are being calculated every second.  As a result there will be a startup period, when the frequency is minute or hour (respectively a startup period of 60 seconds or 3600 seconds).
@@ -71,7 +62,7 @@ For example when 1 message of 1 KByte is received per second, this corresponds t
 
 This means the size will increase during the startup period, to reach the final value:
 
-![Startup](https://raw.githubusercontent.com/bartbutenaers/node-red-contrib-msg-speed/master/images/Startup.png)
+![Startup](https://user-images.githubusercontent.com/14224149/103377181-edef2500-4ade-11eb-9af4-574887dd4d2e.png)
 
 ## Node configuration
 
@@ -79,22 +70,22 @@ This means the size will increase during the startup period, to reach the final 
 The frequency (e.g. '5 second', '20 minute', '1 hour') defines the interval length of the moving window.
 For example a frequency of '25 seconds' means that the average size is calculated (every second), based on the messages arrived in the last 25 seconds.
 
-Caution: long intervals (like 'hour') will take more memory to store all the intermediate size calculations (i.e. one calculation per second).
+Caution: long intervals (like 'hour') will take more memory to store all the intermediate size calculations (i.e. one calculation per second).  Moreover the startup period (with incomplete values) will take longer...
 
 ### Estimate size (during startup period)
 During the startup period, the calculated size will be incorrect.  When estimation is activated, the final size will be estimated during the startup period (using linear extrapolation).  The graph will start from zero immediately to an estimation of the final value:
 
-![Estimation](https://raw.githubusercontent.com/bartbutenaers/node-red-contrib-msg-speed/master/images/estimation.png)
+![Estimation](https://user-images.githubusercontent.com/14224149/103377272-3dcdec00-4adf-11eb-9c81-63bf4bffb4ff.png)
 
-Caution: estimation is very useful if the message rate is stable.  However when the message rate is very unpredictable, the estimation will result in incorrect values.  In the latter case it might be advised to enable 'ignore size during startup'.
+Caution: estimation is very useful if the throughput is stable.  However when the throughput is very unpredictable, the estimation will result in incorrect values.  In the latter case it might be advised to enable 'ignore size during startup'.
 
 ### Ignore size (during startup period)
-During the startup period, the calculated size will be incorrect.  When ignoring size is activated, no messages will be send on the output port during the startup period.  This way it can be avoided that faulty size values are generated.
+During the startup period, the calculated size will be incorrect.  When ignoring size is activated, no size information will be send on the output port during the startup period.  This way it can be avoided that faulty size values are generated.
 
 Moreover during the startup period no node status would be displayed.
 
 ### Pause measurements at startup
-When selected, this node will be paused automatically at startup.  This means that the measurement calculation needs to be resumed explicit via a control message.
+When selected, this node will be paused automatically at startup.  This means that the size calculation needs to be resumed explicit via a control message.
 
 ## Control node via msg
 The size measurement can be controlled via *'control messages'*, which contains one of the following fields:
