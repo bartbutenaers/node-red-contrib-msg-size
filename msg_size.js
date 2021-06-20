@@ -76,7 +76,7 @@ module.exports = function(RED) {
                 var averageMsgSize = 0;
                 
                 if (msgCountInBuffer > 0) {
-                    averageMsgSize = msgStatisticInBuffer / msgCountInBuffer;
+                    averageMsgSize = Math.round(msgStatisticInBuffer / msgCountInBuffer);
                 }
                 
                 var outputMsg = {
