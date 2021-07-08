@@ -14,7 +14,7 @@ Please buy my wife a coffee to keep her happy, while I am busy developing Node-R
 <a href="https://www.buymeacoffee.com/bartbutenaers" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy my wife a coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
 
 ## How it works
-This node will calculate the seach of each individual message that arrives at the input port.  Based on those individual message sizes, it will calculate *every second* some message sizing statistics (for the specified interval):
+This node will calculate the search of each individual message that arrives at the input port.  Based on those individual message sizes, it will calculate *every second* some message sizing statistics (for the specified interval):
 + *Total size*: size of all the messages accumulated (= throughput).
 + *Average size*: average size of all the messages.
 
